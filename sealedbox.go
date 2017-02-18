@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 
 	"github.com/dchest/blake2b"
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -44,4 +45,24 @@ func calculateNonce(publicKey, peersPublicKey *[32]byte) (*[24]byte, error) {
 	hash := h.Sum(nil)
 	copy(nonce[:], hash[:])
 	return &nonce, nil
+}
+
+//SignMessage sign message and return signed message
+func SignMessage(privateKey ed25519.PrivateKey, message []byte) []byte {
+	s := ed25519.Sign(privateKey, message)
+	return append(s, message...)
+}
+
+//SignMessageOpen verify signed message and return message
+func SignMessageOpen(publicKey ed25519.PublicKey, sigmsg []byte) ([]byte, bool) {
+	if len(sigmsg) <= 64 {
+		return nil, false
+	}
+	s := sigmsg[0:64]
+	m := sigmsg[64:]
+	r := ed25519.Verify(publicKey, m, s)
+	if !r {
+		m = nil
+	}
+	return m, r
 }

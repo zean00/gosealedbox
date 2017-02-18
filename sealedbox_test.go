@@ -6,6 +6,7 @@ import (
 
 	"github.com/jamesruan/sodium"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -78,4 +79,34 @@ func TestBoxMix2(t *testing.T) {
 	omsg, r := BoxSealOpen(out, pk, sk)
 	assert.Equal(t, msg, omsg, "Should be equal")
 	assert.True(t, r, "Should be true")
+}
+
+func TestEd25519(t *testing.T) {
+	kp := sodium.MakeSignKP()
+	msg := []byte("Test Signature ")
+	sign := sodium.Bytes(msg).Sign(kp.SecretKey)
+
+	sk := ed25519.PrivateKey(kp.SecretKey.Bytes)
+	esign := SignMessage(sk, msg)
+	assert.Equal(t, []byte(sign), esign)
+}
+
+func TestSodiumEd(t *testing.T) {
+	kp := sodium.MakeSignKP()
+	msg := []byte("Test Signature ")
+	sign := sodium.Bytes(msg).Sign(kp.SecretKey)
+	pk := ed25519.PublicKey(kp.PublicKey.Bytes)
+	emsg, r := SignMessageOpen(pk, sign)
+	assert.True(t, r)
+	assert.Equal(t, msg, emsg)
+}
+
+func TestEdSodium(t *testing.T) {
+	pk, sk, _ := ed25519.GenerateKey(rand.Reader)
+	msg := []byte("Test Signature ")
+	emsg := SignMessage(sk, msg)
+	spk := sodium.SignPublicKey{Bytes: []byte(pk)}
+	omsg, err := sodium.Bytes(emsg).SignOpen(spk)
+	assert.NoError(t, err)
+	assert.Equal(t, msg, []byte(omsg))
 }
