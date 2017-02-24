@@ -95,7 +95,8 @@ func PrivateSignToBox(privateKey []byte) (*[32]byte, *[32]byte, error) {
 		return nil, nil, errors.New("Invalid private key length")
 	}
 	pk := ed25519.PrivateKey(privateKey).Public()
-	return SignKeyToBox(privateKey, pk.([]byte))
+	bpk := pk.(ed25519.PublicKey)
+	return SignKeyToBox(privateKey, []byte(bpk))
 }
 
 //ToPublic convert box secret key to public key
