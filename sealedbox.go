@@ -89,6 +89,17 @@ func SignKeyToBox(privateKey, publicKey []byte) (*[32]byte, *[32]byte, error) {
 	return &sk, &pk, nil
 }
 
+//PublicSignToBox convert signature public key to box public key
+func PublicSignToBox(publicKey []byte) (*[32]byte, error) {
+	if len(publicKey) != ed25519.PublicKeySize {
+		return nil, errors.New("Invalid public key length")
+	}
+	var spk, pk [32]byte
+	copy(spk[:], publicKey[0:32])
+	ex.PublicKeyToCurve25519(&pk, &spk)
+	return &pk, nil
+}
+
 //PrivateSignToBox convert signature private key to box key pair (secret, public, error)
 func PrivateSignToBox(privateKey []byte) (*[32]byte, *[32]byte, error) {
 	if len(privateKey) != ed25519.PrivateKeySize {
